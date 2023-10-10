@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    tools{
+        maven 'maven'
+    }
+    stages{
+        stage('Build Maven'){
+            steps{
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/rtls-net/spring-boot-jenkins-docker-integration']]])
+                echo "Building the projects..."
+                bat 'mvn clean install'
+            }
+        }
+        stage('Build docker image'){
+            steps{
+                script{
+                     echo "Building Docker Image..."
+                    bat 'docker build -t rtlsecs/spring-boot-jenkins-docker-integration .'
+                }
+            }
+        }
+        
+        stage('Push image to Hub'){
+            steps{
+                script{
+                   echo "Login to Docker Hub..."
+                   bat 'docker login -u rtlsecs -p ****'
+                   echo "Pushing Image to Docker hub..."
+                   bat 'docker push rtlsecs/spring-boot-jenkins-docker-integration'
+                }
+            }
+        }
+        stage('Deploy to k8s'){
+            steps{
+                script{
+                    echo "Creating Deployment Objects to k8s..."
+                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
+                }
+            }
+        }
+    }
+}

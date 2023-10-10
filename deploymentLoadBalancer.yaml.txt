@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: spring-boot-k8s-int
+  name: spring-boot-k8s
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: spring-boot-k8s-int
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: spring-boot-k8s-int
+    spec:
+      containers:
+      - image: spring-boot-jenkins-docker-integration:1.0
+        name: spring-boot-k8s
+        ports:
+        - containerPort: 8080
